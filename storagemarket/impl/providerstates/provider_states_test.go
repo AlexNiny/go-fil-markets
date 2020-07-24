@@ -338,6 +338,8 @@ func TestEnsureProviderFunds(t *testing.T) {
 		"succeeds immediately": {
 			dealInspector: func(t *testing.T, deal storagemarket.MinerDeal, env *fakeEnvironment) {
 				tut.AssertDealState(t, storagemarket.StorageDealPublish, deal.State)
+				require.Equal(t, env.dealFunds.ReserveCalls[0], deal.Proposal.ProviderBalanceRequirement())
+				require.Len(t, env.dealFunds.ReleaseCalls, 0)
 			},
 		},
 		"succeeds by sending an AddBalance message": {
@@ -350,6 +352,8 @@ func TestEnsureProviderFunds(t *testing.T) {
 			dealInspector: func(t *testing.T, deal storagemarket.MinerDeal, env *fakeEnvironment) {
 				tut.AssertDealState(t, storagemarket.StorageDealProviderFunding, deal.State)
 				require.Equal(t, &cids[0], deal.AddFundsCid)
+				require.Equal(t, env.dealFunds.ReserveCalls[0], deal.Proposal.ProviderBalanceRequirement())
+				require.Len(t, env.dealFunds.ReleaseCalls, 0)
 			},
 		},
 		"get miner worker fails": {
@@ -368,6 +372,8 @@ func TestEnsureProviderFunds(t *testing.T) {
 			dealInspector: func(t *testing.T, deal storagemarket.MinerDeal, env *fakeEnvironment) {
 				tut.AssertDealState(t, storagemarket.StorageDealFailing, deal.State)
 				require.Equal(t, "error calling node: ensuring funds: not enough funds", deal.Message)
+				require.Equal(t, env.dealFunds.ReserveCalls[0], deal.Proposal.ProviderBalanceRequirement())
+				require.Equal(t, env.dealFunds.ReleaseCalls[0], deal.Proposal.ProviderBalanceRequirement())
 			},
 		},
 	}
